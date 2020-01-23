@@ -25,7 +25,7 @@ contract TestNFT is ERC721Full {
   /**
    * @notice HTLCから支払われた
    */
-  event Payed(address indexed newOwner, bytes32 preimage);
+  event Yield(address indexed newOwner, bytes32 preimage);
 
   /**
    * @notice HTLCがとりやめられた
@@ -72,12 +72,12 @@ contract TestNFT is ERC721Full {
 
 
   function transferFrom(address, address, uint256) public {
-    require(false, "you need lockPayment() / sell()");
+    require(false, "you need lockToken() / yieldToken()");
   }
 
 
   function safeTransferFrom(address, address, uint256, bytes memory) public {
-    require(false, "you need lockPayment() / sell()");
+    require(false, "you need lockToken() / yieldToken()");
   }
 
 
@@ -108,7 +108,7 @@ contract TestNFT is ERC721Full {
    * @param delay タイムアウトブロック数
    * @dev 指定されたtoken IDをlockして、sell()するかunlockPayment()するまで使用不可にする。
    */
-  function lockPayment(uint256 tokenId, bytes32 paymentHash, address payable newOwner, uint256 amount, uint256 delay) public {
+  function lockToken(uint256 tokenId, bytes32 paymentHash, address payable newOwner, uint256 amount, uint256 delay) public {
     require(ownerOf(tokenId) == msg.sender, "not token owner");
     if (!_htlcData[tokenId].locked) {
       require(msg.sender.balance > amount, "need more balance");
@@ -131,7 +131,7 @@ contract TestNFT is ERC721Full {
    * @param newOwner 移譲先アドレス
    * @dev tokenの所有者をnewOwnerに変更し、lockを解除する
    */
-  function sell(uint256 tokenId, bytes32 preImage, address newOwner) public {
+  function yieldToken(uint256 tokenId, bytes32 preImage, address newOwner) public {
     require(_htlcData[tokenId].locked, "not locked");
     require(_htlcData[tokenId].newOwner == newOwner, "unknown address");
     //require(msg.sender.balance > _htlcData[tokenId].amount, "bad balance.");
@@ -141,7 +141,7 @@ contract TestNFT is ERC721Full {
     super._transferFrom(ownerOf(tokenId), newOwner, tokenId);
     _htlcData[tokenId].locked = false;
 
-    emit Payed(newOwner, preImage);
+    emit Yield(newOwner, preImage);
   }
 
 
@@ -149,7 +149,7 @@ contract TestNFT is ERC721Full {
    * @notice lockされたNFTを解除する
    * @param tokenId unlockするNFTのtoken ID
    */
-  function unlockPayment(uint256 tokenId) public {
+  function unlockToken(uint256 tokenId) public {
     if ( _htlcData[tokenId].locked &&
          (block.number - _htlcData[tokenId].height > _htlcData[tokenId].delay)) {
       _htlcData[tokenId].locked = false;
