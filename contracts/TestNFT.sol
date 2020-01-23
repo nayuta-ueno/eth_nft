@@ -25,7 +25,7 @@ contract TestNFT is ERC721Full {
   /**
    * @notice HTLCから支払われた
    */
-  event Yield(address indexed newOwner, bytes32 preimage);
+  event Transfer(address indexed newOwner, bytes32 preimage);
 
   /**
    * @notice HTLCがとりやめられた
@@ -72,12 +72,12 @@ contract TestNFT is ERC721Full {
 
 
   function transferFrom(address, address, uint256) public {
-    require(false, "you need lockToken() / yieldToken()");
+    require(false, "you need lockToken() / transferToken()");
   }
 
 
   function safeTransferFrom(address, address, uint256, bytes memory) public {
-    require(false, "you need lockToken() / yieldToken()");
+    require(false, "you need lockToken() / transferToken()");
   }
 
 
@@ -131,7 +131,7 @@ contract TestNFT is ERC721Full {
    * @param newOwner 移譲先アドレス
    * @dev tokenの所有者をnewOwnerに変更し、lockを解除する
    */
-  function yieldToken(uint256 tokenId, bytes32 preImage, address newOwner) public {
+  function transferToken(uint256 tokenId, bytes32 preImage, address newOwner) public {
     require(_htlcData[tokenId].locked, "not locked");
     require(_htlcData[tokenId].newOwner == newOwner, "unknown address");
     //require(msg.sender.balance > _htlcData[tokenId].amount, "bad balance.");
@@ -141,7 +141,7 @@ contract TestNFT is ERC721Full {
     super._transferFrom(ownerOf(tokenId), newOwner, tokenId);
     _htlcData[tokenId].locked = false;
 
-    emit Yield(newOwner, preImage);
+    emit Transfer(newOwner, preImage);
   }
 
 
