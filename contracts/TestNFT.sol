@@ -25,7 +25,7 @@ contract TestNFT is ERC721Full {
   /**
    * @notice HTLCから支払われた
    */
-  event Transfer(address indexed newOwner, bytes32 preimage);
+  event Transfered(address indexed from, address indexed to, uint256 tokenId, bytes32 preimage);
 
   /**
    * @notice HTLCがとりやめられた
@@ -71,15 +71,28 @@ contract TestNFT is ERC721Full {
   }
 
 
-  function transferFrom(address, address, uint256) public {
-    require(false, "you need lockToken() / transferToken()");
+  function approve(address, uint256) public {
+    revert("not supported");
   }
 
+  function setApprovalForAll(address, bool) public {
+    revert("not supported");
+  }
+
+  function transferFrom(address, address, uint256) public {
+    revert("not supported");
+  }
 
   function safeTransferFrom(address, address, uint256, bytes memory) public {
-    require(false, "you need lockToken() / transferToken()");
+    revert("not supported");
   }
 
+  // function ownerOf(uint256 tokenId) public view returns (address) {
+  //   address owner = super.ownerOf(tokenId);
+  //   require(!_htlcData[tokenId].locked, "locked");
+
+  //   return owner;
+  // }
 
   /**
    * @notice add new NFT
@@ -88,7 +101,7 @@ contract TestNFT is ERC721Full {
    * @return tokenID
    * @dev tokenIDをインクリメントして割り当てる
    */
-  function newNFT(address owner, string memory tokenURI) public returns (uint256) {
+  function newToken(address owner, string memory tokenURI) public returns (uint256) {
     _tokenIds.increment();
 
     uint256 newTokenId = _tokenIds.current();
@@ -108,7 +121,7 @@ contract TestNFT is ERC721Full {
    * @param delay タイムアウトブロック数
    * @dev 指定されたtoken IDをlockして、sell()するかunlockPayment()するまで使用不可にする。
    */
-  function lockToken(uint256 tokenId, bytes32 paymentHash, address payable newOwner, uint256 amount, uint256 delay) public {
+  function lockToken(uint256 tokenId, bytes32 paymentHash, address newOwner, uint256 amount, uint256 delay) public {
     require(ownerOf(tokenId) == msg.sender, "not token owner");
     if (!_htlcData[tokenId].locked) {
       require(msg.sender.balance > amount, "need more balance");
@@ -138,10 +151,11 @@ contract TestNFT is ERC721Full {
     bytes32 hash = sha256(abi.encodePacked(preImage));
     require(hash == _htlcData[tokenId].paymentHash, "invalid preimage");
 
+    address owner = ownerOf(tokenId);
     super._transferFrom(ownerOf(tokenId), newOwner, tokenId);
     _htlcData[tokenId].locked = false;
 
-    emit Transfer(newOwner, preImage);
+    emit Transfered(owner, newOwner, tokenId, preImage);
   }
 
 
