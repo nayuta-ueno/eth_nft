@@ -1,4 +1,5 @@
 const mytest = require('./mytest_addr.js');
+const TOKEN_OWNER = require('./token_owner.js');
 var web3 = mytest.getWeb3();
 
 async function async_func() {
@@ -7,7 +8,7 @@ async function async_func() {
 
     var inst = mytest.getContract().methods;
     const accounts = await web3.eth.getAccounts();
-    var owner = accounts[0];
+    var owner = accounts[TOKEN_OWNER.TOKEN_OWNER];
     web3.eth.defaultAccount = owner;
     console.log("owner=" + owner);
     console.log("owner balance=" + await web3.eth.getBalance(owner));

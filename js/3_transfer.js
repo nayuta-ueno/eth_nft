@@ -1,4 +1,5 @@
 var mytest = require('./mytest_addr.js');
+const TOKEN_OWNER = require('./token_owner.js');
 var web3 = mytest.getWeb3();
 
 // contractに送金
@@ -22,9 +23,9 @@ async function async_func() {
     inst = inst.methods;
 
     const accounts = await web3.eth.getAccounts();
-    var owner = accounts[0];
-    var newOwner = accounts[1];
-    var tokenId = new web3.utils.BN('1');
+    var owner = accounts[TOKEN_OWNER.TOKEN_OWNER];
+    var newOwner = accounts[TOKEN_OWNER.TOKEN_NEWOWNER];
+    var tokenId = new web3.utils.BN(TOKEN_OWNER.TOKEN_ID);
     console.log("owner=" + owner);
     console.log("newOwner=" + newOwner);
     console.log("tokenID=" + tokenId);

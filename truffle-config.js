@@ -47,6 +47,12 @@ module.exports = {
     //  port: 8545,            // Standard Ethereum port (default: none)
     //  network_id: "*",       // Any network (default: none)
     // },
+    myrop: {
+      host: "127.0.0.1",
+      port: 8546,
+      network_id: "*",
+      websockets: true
+    },
 
     // Another network with more advanced options...
     // advanced: {
