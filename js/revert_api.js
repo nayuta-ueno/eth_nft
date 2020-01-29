@@ -5,9 +5,8 @@ var web3 = mytest.getWeb3();
 async function async_func() {
     var inst = mytest.getContract().methods;
 
-    const accounts = await web3.eth.getAccounts();
-    var owner = accounts[0];
-    var newOwner = accounts[1];
+    var owner = TOKEN_OWNER.TOKEN_OWNER;
+    var newOwner = TOKEN_OWNER.TOKEN_NEWOWNER;
     console.log("owner=" + owner);
     console.log("newOwner=" + newOwner);
 

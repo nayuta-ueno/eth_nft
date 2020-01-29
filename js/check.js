@@ -1,5 +1,4 @@
 var mytest = require('./mytest_addr.js');
-const TOKEN_OWNER = require('./token_owner.js');
 var web3 = mytest.getWeb3();
 
 // contractに送金
@@ -9,10 +8,9 @@ async function async_func() {
     // console.log("bytecode=%o", bc);
     // return;
 
-    var inst;
-    var accounts = await web3.eth.getAccounts();
-    var owner = accounts[TOKEN_OWNER.TOKEN_OWNER];
-    var newOwner = accounts[TOKEN_OWNER.TOKEN_NEWOWNER];
+    const TOKEN_OWNER = require('./token_owner.js');
+    var owner = TOKEN_OWNER.TOKEN_OWNER;
+    var newOwner = TOKEN_OWNER.TOKEN_NEWOWNER;
     var tokenId = new web3.utils.BN(TOKEN_OWNER.TOKEN_ID);
 
     console.log("owner=" + owner);
@@ -20,9 +18,14 @@ async function async_func() {
     console.log("tokenID=" + tokenId);
     console.log("token owner=%o", await mytest.getContract().methods.ownerOf(tokenId).call());
 
+    if ((typeof owner === 'undefined') || (typeof newOwner === 'undefined')) {
+        console.log('undefined !!!');
+        process.exit(1);
+    }
+    
     console.log("\n==== owner ====");
     web3.eth.defaultAccount = owner;
-    inst = mytest.getContract().methods;
+    var inst = mytest.getContract().methods;
     console.log("isLocked=" + await inst.isLocked(tokenId).call());
     console.log("getMinimumTimeout()=" + await inst.getMinimumTimeout(tokenId).call());
     try {
