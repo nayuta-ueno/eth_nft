@@ -18,7 +18,7 @@
  *
  */
 
-HDWALLET = require('js/hdwallret_settings.js');
+HDWALLET = require('./js/hdwallet_settings.js');
 const HDWalletProvider = require('truffle-hdwallet-provider');
 
 // const fs = require('fs');
