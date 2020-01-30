@@ -12,6 +12,7 @@ contract TestNFT is ERC721Full {
 
   using Counters for Counters.Counter;
 
+  enum LockStat_t { Undef, Unlock, Lock }
 
   /////////////////////////////////////////////////////////////////////////
   // events
@@ -46,7 +47,7 @@ contract TestNFT is ERC721Full {
     uint256 amount;             ///< 要求額
     uint256 height;             ///< lockしたときのblockNumber
     uint256 delay;              ///< タイムアウトするblock
-    bool locked;                ///< true:lock済み
+    LockStat_t locked;
   }
 
 
@@ -123,17 +124,17 @@ contract TestNFT is ERC721Full {
    */
   function lockToken(uint256 tokenId, bytes32 paymentHash, address newOwner, uint256 amount, uint256 delay) public {
     require(ownerOf(tokenId) == msg.sender, "not token owner");
-    if (!_htlcData[tokenId].locked) {
-      require(msg.sender.balance > amount, "need more balance");
-      _htlcData[tokenId].paymentHash = paymentHash;
-      _htlcData[tokenId].newOwner = newOwner;
-      _htlcData[tokenId].amount = amount;
-      _htlcData[tokenId].height = block.number; //miningされたときのblockNumberになるようだ
-      _htlcData[tokenId].delay = delay;
-      _htlcData[tokenId].locked = true;
+    require(_htlcData[tokenId].locked != LockStat_t.Lock, "already locked");
+    require(msg.sender.balance > amount, "need more balance");
 
-      emit Locked(newOwner, paymentHash);
-    }
+    _htlcData[tokenId].paymentHash = paymentHash;
+    _htlcData[tokenId].newOwner = newOwner;
+    _htlcData[tokenId].amount = amount;
+    _htlcData[tokenId].height = block.number; //miningされたときのblockNumberになるようだ
+    _htlcData[tokenId].delay = delay;
+    _htlcData[tokenId].locked = LockStat_t.Lock;
+
+    emit Locked(newOwner, paymentHash);
   }
 
 
@@ -145,7 +146,7 @@ contract TestNFT is ERC721Full {
    * @dev tokenの所有者をnewOwnerに変更し、lockを解除する
    */
   function transferToken(uint256 tokenId, bytes32 preImage, address newOwner) public {
-    require(_htlcData[tokenId].locked, "not locked");
+    require(_htlcData[tokenId].locked == LockStat_t.Lock, "not locked");
     require(_htlcData[tokenId].newOwner == newOwner, "unknown address");
     //require(msg.sender.balance > _htlcData[tokenId].amount, "bad balance.");
     bytes32 hash = sha256(abi.encodePacked(preImage));
@@ -153,7 +154,7 @@ contract TestNFT is ERC721Full {
 
     address owner = ownerOf(tokenId);
     super._transferFrom(ownerOf(tokenId), newOwner, tokenId);
-    _htlcData[tokenId].locked = false;
+    _htlcData[tokenId].locked = LockStat_t.Unlock;
 
     emit Transfered(owner, newOwner, tokenId, preImage);
   }
@@ -164,14 +165,12 @@ contract TestNFT is ERC721Full {
    * @param tokenId unlockするNFTのtoken ID
    */
   function unlockToken(uint256 tokenId) public {
-    if ( _htlcData[tokenId].locked &&
-         (block.number - _htlcData[tokenId].height > _htlcData[tokenId].delay)) {
-      _htlcData[tokenId].locked = false;
+    require(_htlcData[tokenId].locked == LockStat_t.Lock, "not locked");
+    require(block.number - _htlcData[tokenId].height > _htlcData[tokenId].delay, "-68");
 
-      emit Withdrawn(_htlcData[tokenId].newOwner);
-    } else {
-      assert(false);
-    }
+    _htlcData[tokenId].locked = LockStat_t.Unlock;
+
+    emit Withdrawn(_htlcData[tokenId].newOwner);
   }
 
 
@@ -181,7 +180,8 @@ contract TestNFT is ERC721Full {
    * @return true:lock済み
    * @dev lock済みなのにgetLockParameter()で失敗したら、他の人がnewOwnerになっているということ。
    */
-  function isLocked(uint256 tokenId) public view returns(bool) {
+  function isLocked(uint256 tokenId) public view returns(LockStat_t) {
+    require(false, "NG");
     return _htlcData[tokenId].locked;
   }
 
@@ -192,7 +192,7 @@ contract TestNFT is ERC721Full {
    * @return paymentHash, lockHeight, delay
    */
   function getLockParameter(uint256 tokenId) public view returns(bytes32, uint256, uint256) {
-    require(_htlcData[tokenId].locked, "not locked");
+    require(_htlcData[tokenId].locked == LockStat_t.Lock, "not locked");
     require(_htlcData[tokenId].newOwner == _msgSender(), "not newOwner");
     return (_htlcData[tokenId].paymentHash, _htlcData[tokenId].height, _htlcData[tokenId].delay);
   }
@@ -204,11 +204,8 @@ contract TestNFT is ERC721Full {
    * @return unlockPayment()できる最小のブロック番号
    */
   function getMinimumTimeout(uint256 tokenId) public view returns(uint256) {
-    if (_htlcData[tokenId].locked) {
-      return _htlcData[tokenId].height + _htlcData[tokenId].delay + 1;
-    } else {
-      return 0;
-    }
+    require(_htlcData[tokenId].locked == LockStat_t.Lock, "not locked");
+    return _htlcData[tokenId].height + _htlcData[tokenId].delay + 1;
   }
 
 

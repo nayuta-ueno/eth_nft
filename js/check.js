@@ -16,7 +16,12 @@ async function async_func() {
     console.log("owner=" + owner);
     console.log("newOwner=" + newOwner);
     console.log("tokenID=" + tokenId);
-    console.log("token owner=%o", await mytest.getContract().methods.ownerOf(tokenId).call());
+    try {
+        console.log("token owner=%o", await mytest.getContract().methods.ownerOf(tokenId).call());
+    } catch (err) {
+        console.log("token id not exist");
+        process.exit(1);
+    }
 
     if ((typeof owner === 'undefined') || (typeof newOwner === 'undefined')) {
         console.log('undefined !!!');
@@ -27,8 +32,8 @@ async function async_func() {
     web3.eth.defaultAccount = owner;
     var inst = mytest.getContract().methods;
     console.log("isLocked=" + await inst.isLocked(tokenId).call());
-    console.log("getMinimumTimeout()=" + await inst.getMinimumTimeout(tokenId).call());
     try {
+        console.log("getMinimumTimeout()=" + await inst.getMinimumTimeout(tokenId).call());
         var res = await inst.getLockParameter(tokenId).call();
         console.log("lockParameter=%o", res);
     } catch (err) {
@@ -39,8 +44,8 @@ async function async_func() {
     web3.eth.defaultAccount = newOwner;
     inst = mytest.getContract().methods;
     console.log("isLocked=" + await inst.isLocked(tokenId).call());
-    console.log("getMinimumTimeout()=" + await inst.getMinimumTimeout(tokenId).call());
     try {
+        console.log("getMinimumTimeout()=" + await inst.getMinimumTimeout(tokenId).call());
         var res = await inst.getLockParameter(tokenId).call();
         console.log("lockParameter=%o", res);
     } catch (err) {
